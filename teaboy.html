@@ -134,10 +134,20 @@ function OrderCard({ order, onDone, onDelete }) {
           </>
         ) : (
           <>
-            <div style={{ color:"rgba(255,255,255,0.4)", fontSize:8, fontWeight:700, letterSpacing:1 }}>TABLE</div>
-            <div style={{ color:badgeColor, fontSize:28, fontWeight:900, lineHeight:1.1 }}>
-              {String(order.table_num).padStart(2,"0")}
-            </div>
+            {(()=>{
+              const raw=String(order.table_num||"");
+              const di=raw.lastIndexOf("-");
+              const secId=di>=0?raw.slice(0,di):"";
+              const seat=di>=0?raw.slice(di+1):raw;
+              const table=seat.replace(/[0-9]/g,"");
+              const SN={"QL01":"Quick Lube 01","LS":"Ladies","ES":"Express","EMR":"EM Reception","GSG":"Garage","AA":"Auto Acc"};
+              const secName=SN[secId]||secId;
+              return (<>
+                <div style={{color:"rgba(255,255,255,0.35)",fontSize:7,fontWeight:700,letterSpacing:0.3,marginBottom:1,textAlign:"center"}}>{secName}</div>
+                <div style={{color:badgeColor,fontSize:26,fontWeight:900,lineHeight:1}}>{table}</div>
+                <div style={{color:"rgba(255,255,255,0.5)",fontSize:9,fontWeight:700,marginTop:2}}>{seat}</div>
+              </>);
+            })()}
           </>
         )}
       </div>
