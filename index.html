@@ -467,6 +467,8 @@ function toggleLang(){
 
 function safe(id,val){const el=document.getElementById(id);if(el)el.textContent=val;}
 function applyLang(){
+  // Don't reset to table screen if QR auto-fill already navigated away
+  const _hasQR = new URLSearchParams(window.location.search).get('section');
   const t=TR[lang];
   safe('langLabel',t.langLabel);
   safe('headerTitle',t.headerTitle);
@@ -485,8 +487,8 @@ function applyLang(){
   safe('resetBtn',t.resetBtn);
   if(tableNum){safe('tableBadgeNum',t.tablePrefix+tableNum);buildMenu();}
   if(selDrink){updateDrinkBadge();buildSugar();}
-  // Rebuild section cards so names flip correctly
-  buildTableGrid();
+  // Rebuild section cards so names flip correctly — skip if QR auto-filled
+  if(!_hasQR) buildTableGrid();
   // Re-render success page if visible
   const ss = document.getElementById('screenSuccess');
   if(ss && (ss.classList.contains('active') || ss.style.display==='block')) renderSuccess();
@@ -720,12 +722,31 @@ function renderSuccess(){
 
 async function placeOrder(sugar){
   try{
+    const secName = selectedSection ? selectedSection.name : '';
+    const secAr   = selectedSection ? selectedSection.ar   : '';
+    const lastDash = tableNum ? tableNum.lastIndexOf('-') : -1;
+    const seatCode = lastDash>=0 ? tableNum.slice(lastDash+1) : (tableNum||'');
+    const tblMatch = seatCode.match(/^([A-Za-z]+)/);
+    const tblLetter = tblMatch ? tblMatch[1] : seatCode.charAt(0);
+
     await fetch(SB_URL+'/rest/v1/orders',{
       method:'POST',
       headers:{'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Prefer':'return=minimal'},
-      body:JSON.stringify({table_num:tableNum,coffee:selDrink.name,coffee_ar:selDrink.ar,
-        emoji:selDrink.emoji,sugar_level:sugar,orderer_type:'customer',
-        orderer_name:null,orderer_role:null,status:'pending'})
+      body:JSON.stringify({
+        table_num: tableNum,
+        section: secName,
+        section_ar: secAr,
+        table_letter: tblLetter,
+        seat: seatCode,
+        coffee: selDrink.name,
+        coffee_ar: selDrink.ar,
+        emoji: selDrink.emoji,
+        sugar_level: sugar,
+        orderer_type: 'customer',
+        orderer_name: null,
+        orderer_role: null,
+        status: 'pending'
+      })
     });
   }catch(e){console.log(e)}
   lastSugar=sugar;
@@ -751,17 +772,36 @@ function show(id){
   document.getElementById(id).classList.add('active');
   window.scrollTo(0,0);
 }
-function getTableFromURL(){
+function getParamsFromURL(){
   const p=new URLSearchParams(window.location.search);
-  const t=parseInt(p.get('table'));
-  return(t>=1&&t<=50)?t:null;
+  return {
+    section: p.get('section') || null,
+    table:   p.get('table')   || null,
+    seat:    p.get('seat')    || null,
+  };
 }
 
 buildTableGrid();
 applyDir();
 applyLang();
-const urlTable=getTableFromURL();
-if(urlTable){tableNum=urlTable;setTableBadge(urlTable);buildMenu();show('screenMenu');}
+
+// Auto-fill from QR code scan — skip straight to drink menu
+const qrParams = getParamsFromURL();
+if(qrParams.section){
+  const sec = SECTIONS.find(s=>s.id===qrParams.section);
+  if(sec){
+    selectedSection = sec;
+    const seat = qrParams.seat || '';
+    const table = qrParams.table && qrParams.table !== '-' ? qrParams.table : '';
+    // Build the combined table string used throughout the app
+    const combined = sec.id + '-' + seat;
+    tableNum = combined;
+    seatNum  = seat;
+    setTableBadge(combined);
+    buildMenu();
+    show('screenMenu');
+  }
+}
 </script>
 </body>
 </html>
