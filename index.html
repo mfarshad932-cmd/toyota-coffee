@@ -449,7 +449,7 @@ const TR={
   }
 };
 
-let lang='ar', tableNum=null, selDrink=null, lastSugar=null, lastSection=null;
+let lang='ar', tableNum=null, selDrink=null, lastSugar=null, lastSection=null, isOrdering=false;
 try{const saved=sessionStorage.getItem('lang');if(saved)lang=saved;}catch(e){}
 
 function applyDir(){
@@ -462,7 +462,15 @@ function toggleLang(){
   try{sessionStorage.setItem('lang',lang);}catch(e){}
   applyDir();
   applyLang();
-  renderSuccess();
+  // Rebuild current active screen content
+  const active = document.querySelector('.screen.active');
+  if(active){
+    const id = active.id;
+    if(id==='screenTable') buildTableGrid();
+    if(id==='screenMenu'){ buildMenu(); if(tableNum) setTableBadge(tableNum); }
+    if(id==='screenSugar'){ buildSugar(); updateDrinkBadge(); }
+    if(id==='screenSuccess') renderSuccess();
+  }
 }
 
 function safe(id,val){const el=document.getElementById(id);if(el)el.textContent=val;}
@@ -485,7 +493,7 @@ function applyLang(){
   safe('successTLabel',t.successTLabel);
   safe('successFooter',t.successFooter);
   safe('resetBtn',t.resetBtn);
-  if(tableNum){safe('tableBadgeNum',t.tablePrefix+tableNum);buildMenu();}
+  if(tableNum){setTableBadge(tableNum);buildMenu();}
   if(selDrink){updateDrinkBadge();buildSugar();}
   // Rebuild section cards so names flip correctly — skip if QR auto-filled
   if(!_hasQR) buildTableGrid();
@@ -721,6 +729,16 @@ function renderSuccess(){
 }
 
 async function placeOrder(sugar){
+  // Prevent duplicate orders
+  if(isOrdering) return;
+  isOrdering = true;
+
+  // Disable all sugar buttons and show loading
+  document.querySelectorAll('.sugar-item').forEach(btn=>{
+    btn.style.pointerEvents='none';
+    btn.style.opacity='0.5';
+  });
+
   try{
     const secName = selectedSection ? selectedSection.name : '';
     const secAr   = selectedSection ? selectedSection.ar   : '';
@@ -749,8 +767,10 @@ async function placeOrder(sugar){
       })
     });
   }catch(e){console.log(e)}
+
   lastSugar=sugar;
   lastSection=selectedSection;
+  isOrdering=false;
   renderSuccess();
   show('screenSuccess');
 }
