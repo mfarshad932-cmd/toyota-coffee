@@ -781,27 +781,36 @@ function getParamsFromURL(){
   };
 }
 
-buildTableGrid();
-applyDir();
-applyLang();
+function getTableFromURL(){
+  const p=new URLSearchParams(window.location.search);
+  const sec=p.get('section');
+  const seat=p.get('seat');
+  if(sec && seat) return sec+'-'+seat;
+  return null;
+}
 
-// Auto-fill from QR code scan — skip straight to drink menu
-const qrParams = getParamsFromURL();
-if(qrParams.section){
-  const sec = SECTIONS.find(s=>s.id===qrParams.section);
-  if(sec){
-    selectedSection = sec;
-    const seat = qrParams.seat || '';
-    const table = qrParams.table && qrParams.table !== '-' ? qrParams.table : '';
-    // Build the combined table string used throughout the app
-    const combined = sec.id + '-' + seat;
-    tableNum = combined;
-    seatNum  = seat;
-    setTableBadge(combined);
-    buildMenu();
-    show('screenMenu');
+function initApp(){
+  buildTableGrid();
+  applyDir();
+  applyLang();
+
+  // Auto-fill from QR code scan — skip straight to drink menu
+  const qrParams = getParamsFromURL();
+  if(qrParams.section && qrParams.seat){
+    const sec = SECTIONS.find(s=>s.id===qrParams.section);
+    if(sec){
+      selectedSection = sec;
+      const seat = qrParams.seat;
+      const combined = sec.id + '-' + seat;
+      tableNum = combined;
+      setTableBadge(combined);
+      buildMenu();
+      show('screenMenu');
+    }
   }
 }
+
+document.addEventListener('DOMContentLoaded', initApp);
 </script>
 </body>
 </html>
