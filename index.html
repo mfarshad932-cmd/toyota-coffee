@@ -493,13 +493,19 @@ function applyLang(){
 }
 
 const SECTIONS=[
-  {id:'QL01', name:'Quick Lube 01', ar:'كويك لوب 01', emoji:'🔧',
+  {id:'QL01', name:'Quick Lube 01', ar:'تغيير الزيت والفلتر ٠١', emoji:'🔧',
     tables:[
       {name:'A', seats:['A1','A2']},
       {name:'B', seats:['B1','B2']},
       {name:'C', seats:['C1','C2']},
       {name:'D', seats:['D1','D2']},
       {name:'E', seats:['E1','E2']},
+    ]},
+  {id:'QL02', name:'Quick Lube 02', ar:'تغيير الزيت والفلتر ٠٢', emoji:'🔧',
+    tables:[
+      {name:'A', seats:['A1','A2']},
+      {name:'B', seats:['B1','B2']},
+      {name:'C', seats:['C1','C2']},
     ]},
   {id:'LS',   name:'Ladies Section',      ar:'قسم السيدات',           emoji:'👩',
     tables:[
@@ -520,13 +526,9 @@ const SECTIONS=[
       {name:'I', seats:['I1','I2']},
       {name:'J', seats:['J1','J2']},
       {name:'K', seats:['K1','K2']},
-      {name:'L', seats:['L1','L2']},
-      {name:'M', seats:['M1','M2']},
-      {name:'N', seats:['N1','N2']},
     ]},
-  {id:'EMR',  name:'EM Reception',        ar:'استقبال EM',            emoji:'🏢', tables:[], directSeats:['XR1','XR2','XR3','XR4','XR5','XR6','XR7']},
-  {id:'GSG',  name:'General Section (Garage)', ar:'القسم العام (الكراج)', emoji:'🏗️', tables:[]},
-  {id:'AA',   name:'Auto Accessories',    ar:'قطع غيار السيارات',     emoji:'🛞',
+  {id:'GSG',  name:'General Section (Garage)', ar:'القسم العام (الورشة)', emoji:'🏗️', tables:[], directSeats:['GR1','GR2','GR3','GR4','GR5','GR6','GR7']},
+  {id:'AA',   name:'Body & Parts',        ar:'الهيكل وقطع الغيار',    emoji:'🛞',
     tables:[
       {name:'A', seats:['A1','A2']},
       {name:'B', seats:['B1','B2']},
@@ -593,7 +595,7 @@ function buildSeatGrid(sec){
       const btn=document.createElement('button');
       btn.className='seat-btn';
       btn.textContent=seat;
-      btn.onclick=()=>selectTable('EMR-'+seat);
+      btn.onclick=()=>selectTable(sec.id+'-'+seat);
       wrap.appendChild(btn);
     });
     g.appendChild(wrap);
