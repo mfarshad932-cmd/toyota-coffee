@@ -733,34 +733,26 @@ async function checkTeaBoyOnline(){
     const res = await fetch(SB_URL+'/rest/v1/teaboy_status?select=is_online',{
       headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}
     });
-    if(!res.ok) return true;
+    if(!res.ok) return true; // if error, allow order
     const data = await res.json();
-    if(!data || data.length === 0) return true;
+    if(!data || data.length === 0) return true; // no record yet, allow order
     return data.some(row => row.is_online === true);
-  }catch(e){ return true; }
+  }catch(e){ return true; } // on any error, allow order
 }
 
 async function placeOrder(sugar){
-  // Block double tap immediately
-  if(isOrdering) return;
-  isOrdering = true;
-  document.querySelectorAll('.sugar-item').forEach(btn=>{
-    btn.style.pointerEvents='none';
-    btn.style.opacity='0.5';
-  });
-
-  // Check tea boy online
+  // Check tea boy online status
   const online = await checkTeaBoyOnline();
   if(!online){
-    const msg = document.createElement('div');
-    msg.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#1a1a1a;color:#fff;padding:28px 32px;border-radius:16px;text-align:center;z-index:9999;font-family:inherit;box-shadow:0 8px 32px rgba(0,0,0,0.5);max-width:320px;width:90%';
-    msg.innerHTML='<div style="font-size:2.5rem;margin-bottom:12px">☕</div><div style="font-size:1.1rem;font-weight:700;margin-bottom:8px">Service Unavailable</div><div style="font-size:0.85rem;opacity:0.7;margin-bottom:4px">الخدمة غير متاحة حالياً</div><div style="font-size:0.8rem;opacity:0.6;margin-top:12px">Please try again later · يرجى المحاولة لاحقاً</div>';
-    document.body.appendChild(msg);
-    setTimeout(()=>{
-      msg.remove();
-      isOrdering=false;
-      document.querySelectorAll('.sugar-item').forEach(btn=>{ btn.style.pointerEvents=''; btn.style.opacity=''; });
-    }, 3000);
+    const existing = document.getElementById('offline-msg');
+    if(!existing){
+      const msg = document.createElement('div');
+      msg.id = 'offline-msg';
+      msg.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#1a1a1a;color:#fff;padding:28px 32px;border-radius:16px;text-align:center;z-index:9999;font-family:inherit;box-shadow:0 8px 32px rgba(0,0,0,0.5);max-width:320px;width:90%';
+      msg.innerHTML='<div style="font-size:2.5rem;margin-bottom:12px">☕</div><div style="font-size:1.1rem;font-weight:700;margin-bottom:8px">Service Unavailable</div><div style="font-size:0.85rem;opacity:0.7;margin-bottom:4px">الخدمة غير متاحة حالياً</div><div style="font-size:0.8rem;opacity:0.6;margin-top:12px">Please try again later · يرجى المحاولة لاحقاً</div>';
+      document.body.appendChild(msg);
+      setTimeout(()=>{ msg.remove(); }, 3000);
+    }
     return;
   }
 
