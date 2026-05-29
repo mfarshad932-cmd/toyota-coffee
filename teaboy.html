@@ -24,7 +24,9 @@
 const SUPABASE_URL = "https://shgqofrjrstpurfnpzjx.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNoZ3FvZnJqcnN0cHVyZm5wemp4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzNzU3ODQsImV4cCI6MjA5NDk1MTc4NH0.Gr86QnljlskTmJ1kAotaiMixQqqMp13lNrOUFPHgKy0";
 
-const PASSWORD = "1234";
+const TEABOYS = [
+  { name:"Tea Boy 1", pin:"1111" },
+];
 
 async function setTeaBoyOnline(name) {
   // Upsert teaboy status
@@ -470,57 +472,7 @@ function App() {
     </div>
   );
 }
-function login(){
 
-  const pass =
-    document.getElementById("pass").value;
-
-  if(pass !== PASSWORD){
-
-    alert("Wrong Password");
-
-    return;
-  }
-
-  localStorage.setItem(
-    "teaLogin",
-    "yes"
-  );
-
-  document.getElementById(
-    "loginBox"
-  ).style.display = "none";
-
-  document.getElementById(
-    "root"
-  ).style.display = "block";
-
-  setTeaBoyOnline("Tea Boy 1");
-
-}
-
-function checkLogin(){
-
-  const logged =
-    localStorage.getItem("teaLogin");
-
-  if(logged){
-
-    document.getElementById(
-      "loginBox"
-    ).style.display = "none";
-
-    document.getElementById(
-      "root"
-    ).style.display = "block";
-
-    setTeaBoyOnline("Tea Boy 1");
-
-  }
-
-}
-
-checkLogin();
 ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
 </script>
 </body>
