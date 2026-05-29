@@ -354,7 +354,6 @@ function App() {
   const handleDone = async(id) => {
     setOrders(prev=>prev.map(o=>o.id===id?{...o,status:"done"}:o));
     await markDone(id);
-    await load();
   };
 
   const handleDelete = async(id) => {
