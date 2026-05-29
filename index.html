@@ -290,9 +290,36 @@ body{
   transition:all 0.2s;letter-spacing:0
 }
 .reset-btn:hover{background:rgba(201,168,76,0.09);border-color:var(--gold)}
+
+/* OFFLINE OVERLAY */
+#offlineOverlay{
+  display:none;position:fixed;inset:0;z-index:9999;
+  background:rgba(5,5,5,0.97);
+  flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding:32px
+}
+#offlineOverlay.show{display:flex}
+.offline-icon{font-size:72px;margin-bottom:20px;animation:pop 0.6s cubic-bezier(0.16,1,0.3,1) forwards}
+.offline-title{font-size:26px;font-weight:900;color:var(--text);margin-bottom:8px}
+.offline-sub{font-size:14px;color:var(--dim2);line-height:1.6}
+.offline-badge{
+  margin-top:28px;display:inline-flex;align-items:center;gap:8px;
+  background:#1a0a0a;border:1px solid #5a1a1a;
+  border-radius:24px;padding:10px 22px;
+  color:#f87171;font-size:13px;font-weight:700;font-family:'Barlow',sans-serif
+}
+.offline-dot{width:8px;height:8px;background:#ef4444;border-radius:50%;animation:pulse 1.5s infinite}
 </style>
 </head>
 <body>
+
+<!-- OFFLINE OVERLAY -->
+<div id="offlineOverlay">
+  <div class="offline-icon">☕</div>
+  <div class="offline-title">Tea Boy غير متاح الآن</div>
+  <div class="offline-sub">Tea Boy is currently offline<br>Please try again later</div>
+  <div class="offline-badge"><div class="offline-dot"></div>OFFLINE</div>
+</div>
 
 <!-- TOP BAR -->
 <div class="top-bar">
@@ -402,6 +429,22 @@ body{
 <script>
 const SB_URL='https://shgqofrjrstpurfnpzjx.supabase.co';
 const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNoZ3FvZnJqcnN0cHVyZm5wemp4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzNzU3ODQsImV4cCI6MjA5NDk1MTc4NH0.Gr86QnljlskTmJ1kAotaiMixQqqMp13lNrOUFPHgKy0';
+
+// ── TEABOY ONLINE CHECK ──
+let teaBoyOnline = false;
+
+async function checkTeaBoyStatus(){
+  try{
+    const res = await fetch(SB_URL+'/rest/v1/teaboy_status?is_online=eq.true&limit=1',{
+      headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}
+    });
+    const data = await res.json();
+    teaBoyOnline = Array.isArray(data) && data.length > 0;
+  }catch(e){ teaBoyOnline = false; }
+  const overlay = document.getElementById('offlineOverlay');
+  if(teaBoyOnline){ overlay.classList.remove('show'); }
+  else { overlay.classList.add('show'); }
+}
 
 const MENU=[
   {id:1,name:"Plain Tea",      ar:"شاي سادة",    emoji:"🫖",sugar:true},
@@ -729,6 +772,8 @@ function renderSuccess(){
 }
 
 async function placeOrder(sugar){
+  // Block if tea boy offline
+  if(!teaBoyOnline){ checkTeaBoyStatus(); return; }
   // Prevent duplicate orders
   if(isOrdering) return;
   isOrdering = true;
@@ -828,9 +873,13 @@ function initApp(){
       show('screenMenu');
     }
   }
+
+  // Check tea boy status immediately, then poll every 5s
+  checkTeaBoyStatus();
+  setInterval(checkTeaBoyStatus, 5000);
 }
 
 document.addEventListener('DOMContentLoaded', initApp);
-</script>
+
 </body>
 </html>
