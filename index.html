@@ -733,15 +733,15 @@ async function checkTeaBoyOnline(){
     const res = await fetch(SB_URL+'/rest/v1/teaboy_status?select=is_online',{
       headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}
     });
-    if(!res.ok) return false;
+    if(!res.ok) return true;
     const data = await res.json();
-    if(!data || data.length === 0) return false;
+    if(!data || data.length === 0) return true;
     return data.some(row => row.is_online === true);
-  }catch(e){ return false; }
+  }catch(e){ return true; }
 }
 
 async function placeOrder(sugar){
-  // Block immediately on first tap
+  // Block double tap immediately
   if(isOrdering) return;
   isOrdering = true;
   document.querySelectorAll('.sugar-item').forEach(btn=>{
