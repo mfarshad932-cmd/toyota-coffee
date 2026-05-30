@@ -355,6 +355,7 @@ function App() {
     setOrders(prev=>prev.map(o=>o.id===id?{...o,status:"done"}:o));
     await markDone(id);
     await load();
+    setTab("done");
   };
 
   const handleDelete = async(id) => {
