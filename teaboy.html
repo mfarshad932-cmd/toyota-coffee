@@ -359,9 +359,9 @@ function App() {
       if (ids.length) {
         reconciled = data
           // drop deleted orders that the server still returns
-          .filter(o => !(pa[o.id] && pa[o.id].action === 'delete'))
+          .filter(o => !(pa[String(o.id)] && pa[String(o.id)].action === 'delete'))
           // force done status for orders we just completed
-          .map(o => (pa[o.id] && pa[o.id].action === 'done') ? { ...o, status:'done' } : o);
+          .map(o => (pa[String(o.id)] && pa[String(o.id)].action === 'done') ? { ...o, status:'done' } : o);
         // expire entries: either the server now agrees, or the grace window passed
         ids.forEach(id => {
           const entry = pa[id];
@@ -388,25 +388,25 @@ function App() {
   React.useEffect(() => {
     if (!teaBoyName) return;
     teaBoyHeartbeat(teaBoyName);
-    const hb = setInterval(() => teaBoyHeartbeat(teaBoyName), 10000);
+    const hb = setInterval(() => teaBoyHeartbeat(teaBoyName), 5000);
     return () => clearInterval(hb);
   }, [teaBoyName]);
 
   const handleDone = async(id) => {
-    pendingActions.current[id] = { action:'done', until: Date.now()+10000 };
-    setOrders(prev=>prev.map(o=>o.id===id?{...o,status:"done"}:o));
+    pendingActions.current[String(id)] = { action:'done', until: Date.now()+10000 };
+    setOrders(prev=>prev.map(o=>String(o.id)===String(id)?{...o,status:"done"}:o));
     await markDone(id);
   };
 
   const handleDelete = async(id) => {
-    pendingActions.current[id] = { action:'delete', until: Date.now()+10000 };
-    setOrders(prev=>prev.filter(o=>o.id!==id));
+    pendingActions.current[String(id)] = { action:'delete', until: Date.now()+10000 };
+    setOrders(prev=>prev.filter(o=>String(o.id)!==String(id)));
     await deleteOrder(id);
   };
 
   const clearAllDone = async() => {
     const doneList = orders.filter(o=>o.status==="done");
-    doneList.forEach(o => { pendingActions.current[o.id] = { action:'delete', until: Date.now()+10000 }; });
+    doneList.forEach(o => { pendingActions.current[String(o.id)] = { action:'delete', until: Date.now()+10000 }; });
     setOrders(prev=>prev.filter(o=>o.status!=="done"));
     await Promise.all(doneList.map(o=>deleteOrder(o.id)));
   };
