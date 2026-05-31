@@ -37,7 +37,18 @@ async function setTeaBoyOnline(name) {
   await fetch(`${SUPABASE_URL}/rest/v1/teaboy_status`, {
     method:"POST",
     headers:{ "Content-Type":"application/json","apikey":SUPABASE_KEY,"Authorization":`Bearer ${SUPABASE_KEY}`,"Prefer":"return=minimal" },
-    body:JSON.stringify({ name, is_online:true })
+    body:JSON.stringify({ name, is_online:true, last_seen:new Date().toISOString() })
+  }).catch(()=>{});
+}
+
+// Heartbeat: while the dashboard is open, keep saying "I'm still here".
+// If the tab closes / refreshes away / phone dies, last_seen goes stale and the
+// customer app closes ordering automatically.
+async function teaBoyHeartbeat(name) {
+  await fetch(`${SUPABASE_URL}/rest/v1/teaboy_status?name=eq.${encodeURIComponent(name)}`, {
+    method:"PATCH",
+    headers:{ "Content-Type":"application/json","apikey":SUPABASE_KEY,"Authorization":`Bearer ${SUPABASE_KEY}`,"Prefer":"return=minimal" },
+    body:JSON.stringify({ is_online:true, last_seen:new Date().toISOString() })
   }).catch(()=>{});
 }
 
@@ -240,12 +251,9 @@ function LoginScreen({ onLogin }) {
       return;
     }
     setLoading(true);
-    try {
-      await setTeaBoyOnline(selectedName);
-      onLogin(selectedName);
-    } finally {
-      setLoading(false);
-    }
+    await setTeaBoyOnline(selectedName);
+    setLoading(false);
+    onLogin(selectedName);
   };
 
   return (
@@ -290,10 +298,8 @@ function LoginScreen({ onLogin }) {
         <div style={{ marginBottom:16 }}>
           <div style={{ color:"#888", fontSize:11, fontWeight:700, letterSpacing:1, marginBottom:8, textTransform:"uppercase" }}>PIN Code</div>
           <input
-            type="password" inputMode="numeric" maxLength={4} autoFocus
-            value={pin}
-            onChange={e=>{ setPin(e.target.value.replace(/\D/g,"").slice(0,4)); setError(""); }}
-            onKeyDown={e=>{ if(e.key==="Enter" && pin.length===4) handleLogin(); }}
+            type="password" inputMode="numeric" maxLength={4}
+            value={pin} onChange={e=>{ setPin(e.target.value); setError(""); }}
             placeholder="Enter 4-digit PIN"
             style={{
               width:"100%", background:"#111", border:"1.5px solid #333",
@@ -330,49 +336,84 @@ function LoginScreen({ onLogin }) {
 function App() {
   const [orders,    setOrders]    = React.useState([]);
   const [teaBoyName, setTeaBoyName] = React.useState(() => {
-    try { return localStorage.getItem("teaboy_name") || null; } catch(e) { return null; }
+    try { return localStorage.getItem("teaboy_session") || null; } catch(e) { return null; }
   });
   const [tab,       setTab]       = React.useState("pending");
   const [connError, setConnError] = React.useState(false);
   const [errorMsg,  setErrorMsg]  = React.useState("");
   const prevCount = React.useRef(0);
+  // Remembers orders we just marked done / deleted, so the 4s refresh doesn't
+  // briefly bring them back before the database catches up (kills the flicker).
+  // Map of orderId -> { action:'done'|'delete', until: timestamp }
+  const pendingActions = React.useRef({});
 
   const load = async () => {
     try {
       const data = await fetchOrders();
       if (!Array.isArray(data)) { setConnError(true); setErrorMsg(JSON.stringify(data)); return; }
-      const p = data.filter(o=>o.status==="pending").length;
+      // Reconcile against actions we just took locally
+      const now = Date.now();
+      const pa = pendingActions.current;
+      let reconciled = data;
+      const ids = Object.keys(pa);
+      if (ids.length) {
+        reconciled = data
+          // drop deleted orders that the server still returns
+          .filter(o => !(pa[o.id] && pa[o.id].action === 'delete'))
+          // force done status for orders we just completed
+          .map(o => (pa[o.id] && pa[o.id].action === 'done') ? { ...o, status:'done' } : o);
+        // expire entries: either the server now agrees, or the grace window passed
+        ids.forEach(id => {
+          const entry = pa[id];
+          const serverRow = data.find(o => String(o.id) === String(id));
+          const serverAgrees =
+            (entry.action === 'delete' && !serverRow) ||
+            (entry.action === 'done'   && serverRow && serverRow.status === 'done');
+          if (serverAgrees || now > entry.until) delete pa[id];
+        });
+      }
+      const p = reconciled.filter(o=>o.status==="pending").length;
       if (p > prevCount.current && prevCount.current >= 0) playPing();
       prevCount.current = p;
-      setOrders(data);
+      setOrders(reconciled);
       setConnError(false); setErrorMsg("");
     } catch(e) { setConnError(true); setErrorMsg(e.message); }
   };
 
   React.useEffect(() => { load(); const t=setInterval(load,4000); return ()=>clearInterval(t); }, []);
 
-  React.useEffect(() => { if (teaBoyName) setTeaBoyOnline(teaBoyName); }, []);
+  // While logged in: re-assert online immediately (covers page refresh) and
+  // send a heartbeat every 10s. If the tab/phone goes away, last_seen stops
+  // updating and the customer app closes ordering on its own.
+  React.useEffect(() => {
+    if (!teaBoyName) return;
+    teaBoyHeartbeat(teaBoyName);
+    const hb = setInterval(() => teaBoyHeartbeat(teaBoyName), 10000);
+    return () => clearInterval(hb);
+  }, [teaBoyName]);
 
   const handleDone = async(id) => {
+    pendingActions.current[id] = { action:'done', until: Date.now()+10000 };
     setOrders(prev=>prev.map(o=>o.id===id?{...o,status:"done"}:o));
     await markDone(id);
-    await load();
   };
 
   const handleDelete = async(id) => {
+    pendingActions.current[id] = { action:'delete', until: Date.now()+10000 };
     setOrders(prev=>prev.filter(o=>o.id!==id));
     await deleteOrder(id);
   };
 
   const clearAllDone = async() => {
     const doneList = orders.filter(o=>o.status==="done");
+    doneList.forEach(o => { pendingActions.current[o.id] = { action:'delete', until: Date.now()+10000 }; });
     setOrders(prev=>prev.filter(o=>o.status!=="done"));
     await Promise.all(doneList.map(o=>deleteOrder(o.id)));
   };
 
   const handleLogout = async () => {
+    try { localStorage.removeItem("teaboy_session"); } catch(e) {}
     if(teaBoyName) await setTeaBoyOffline(teaBoyName);
-    try { localStorage.removeItem("teaboy_name"); } catch(e) {}
     setTeaBoyName(null);
     setOrders([]);
   };
@@ -384,10 +425,7 @@ function App() {
   const pendingCustomer = pending.filter(o=>o.orderer_type!=="staff").length;
   const pendingStaff    = pending.filter(o=>o.orderer_type==="staff").length;
 
-  if (!teaBoyName) return <LoginScreen onLogin={(name) => {
-    try { localStorage.setItem("teaboy_name", name); } catch(e) {}
-    setTeaBoyName(name);
-  }} />;
+  if (!teaBoyName) return <LoginScreen onLogin={(name) => { try { localStorage.setItem("teaboy_session", name); } catch(e) {} setTeaBoyName(name); }} />;
 
   return (
     <div style={{ minHeight:"100vh", background:"#0f0f0f", display:"flex", flexDirection:"column" }}>
