@@ -652,10 +652,14 @@ function setTableBadge(t){
   const seat=parts[parts.length-1];
   const match=seat.match(/^([A-Za-z]+)/);
   const tblLetter=match?match[1]:seat.charAt(0);
+  // Section name (from the selected section, or look it up from the code in t)
+  let sec=selectedSection;
+  if(!sec){ const secId=parts[0]; sec=SECTIONS.find(s=>s.id===secId)||null; }
+  const secName=sec?(lang==='ar'?sec.ar:sec.name):'';
   if(lang==='ar'){
-    document.getElementById('tableBadgeNum').textContent='🪑 طاولة '+tblLetter+' · مقعد '+seat;
+    document.getElementById('tableBadgeNum').textContent=(secName?secName+' · ':'')+'🪑 طاولة '+tblLetter+' · مقعد '+seat;
   } else {
-    document.getElementById('tableBadgeNum').textContent='🪑 Table '+tblLetter+' · Seat '+seat;
+    document.getElementById('tableBadgeNum').textContent=(secName?secName+' · ':'')+'🪑 Table '+tblLetter+' · Seat '+seat;
   }
 }
 
@@ -729,8 +733,8 @@ function renderSuccess(){
 async function isServiceOpen(){
   const H={'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY};
   try{
-    // A tea boy counts as "working" only if his dashboard checked in within 45s.
-    const cutoff=new Date(Date.now()-45000).toISOString();
+    // A tea boy counts as "working" only if his dashboard checked in within 90s.
+    const cutoff=new Date(Date.now()-90000).toISOString();
     let res=await fetch(SB_URL+'/rest/v1/teaboy_status?is_online=eq.true&last_seen=gte.'+encodeURIComponent(cutoff)+'&select=name',{headers:H});
     if(res.ok){ const rows=await res.json(); return Array.isArray(rows) && rows.length>0; }
     // If last_seen column is not added yet, fall back to plain online flag
@@ -869,7 +873,7 @@ function initApp(){
 
   // Check tea boy online status, then poll every 15s
   refreshServiceStatus();
-  statusTimer=setInterval(refreshServiceStatus, 15000);
+  statusTimer=setInterval(refreshServiceStatus, 8000);
 
   // Auto-fill from QR code scan — skip straight to drink menu
   const qrParams = getParamsFromURL();
