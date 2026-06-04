@@ -447,7 +447,7 @@ const TR={
 };
 
 let lang='ar', tableNum=null, selDrink=null, lastSugar=null, lastSection=null, isOrdering=false;
-let inSeatView=false, selectedSection=null, serviceOpen=true, statusTimer=null;
+let inSeatView=false, selectedSection=null;
 try{const saved=sessionStorage.getItem('lang');if(saved)lang=saved;}catch(e){}
 
 function applyDir(){
@@ -460,8 +460,6 @@ function toggleLang(){
   try{sessionStorage.setItem('lang',lang);}catch(e){}
   applyDir();
   applyLang();
-  // Keep the "closed" overlay text in the chosen language
-  if(document.getElementById('closedOverlay')) renderClosedOverlay();
   const active = document.querySelector('.screen.active');
   if(active){
     const id = active.id;
@@ -509,12 +507,6 @@ const SECTIONS=[
       {name:'D', seats:['D1','D2']},
       {name:'E', seats:['E1','E2']},
     ]},
-  {id:'QL02', name:'Quick Lube 02', ar:'تغيير الزيت والفلتر ٠٢', emoji:'🔧',
-    tables:[
-      {name:'A', seats:['A1','A2']},
-      {name:'B', seats:['B1','B2']},
-      {name:'C', seats:['C1','C2']},
-    ]},
   {id:'LS',   name:'Ladies Section',      ar:'قسم السيدات',           emoji:'👩',
     tables:[
       {name:'A', seats:['A1','A2']},
@@ -534,6 +526,9 @@ const SECTIONS=[
       {name:'I', seats:['I1','I2']},
       {name:'J', seats:['J1','J2']},
       {name:'K', seats:['K1','K2']},
+      {name:'L', seats:['L1','L2']},
+      {name:'M', seats:['M1','M2']},
+      {name:'N', seats:['N1','N2']},
     ]},
   {id:'GSG',  name:'General Section (Garage)', ar:'القسم العام (الورشة)', emoji:'🏗️', tables:[], directSeats:['GR1','GR2','GR3','GR4','GR5','GR6','GR7']},
   {id:'AA',   name:'Body & Parts',        ar:'الهيكل وقطع الغيار',    emoji:'🛞',
@@ -729,49 +724,6 @@ function renderSuccess(){
   if(document.getElementById('lbl_seat'))safe('lbl_seat',t.lbl_seat||'SEAT');
 }
 
-// ── SERVICE STATUS (tea boy online check) ──
-async function isServiceOpen(){
-  const H={'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY};
-  try{
-    // A tea boy counts as "working" only if his dashboard checked in within 90s.
-    const cutoff=new Date(Date.now()-90000).toISOString();
-    let res=await fetch(SB_URL+'/rest/v1/teaboy_status?is_online=eq.true&last_seen=gte.'+encodeURIComponent(cutoff)+'&select=name',{headers:H});
-    if(res.ok){ const rows=await res.json(); return Array.isArray(rows) && rows.length>0; }
-    // If last_seen column is not added yet, fall back to plain online flag
-    res=await fetch(SB_URL+'/rest/v1/teaboy_status?is_online=eq.true&select=name',{headers:H});
-    if(res.ok){ const rows=await res.json(); return Array.isArray(rows) && rows.length>0; }
-    return true; // db/network down → don't block real customers
-  }catch(e){ return true; } // fail-open on error
-}
-
-function renderClosedOverlay(){
-  let ov=document.getElementById('closedOverlay');
-  if(!ov){
-    ov=document.createElement('div');
-    ov.id='closedOverlay';
-    ov.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(5,5,5,0.96);backdrop-filter:blur(8px);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:32px';
-    document.body.appendChild(ov);
-  }
-  const titleAr='الخدمة مغلقة حالياً', titleEn='Service Currently Closed';
-  const subAr='لا يوجد موظف متاح الآن. الرجاء المحاولة بعد قليل ☕', subEn='No staff available right now. Please try again shortly ☕';
-  const reopenAr='سيُعاد الفتح تلقائياً', reopenEn='Will reopen automatically';
-  ov.innerHTML=`
-    <div style="font-size:64px;margin-bottom:18px">☕</div>
-    <div style="font-size:22px;font-weight:900;color:var(--gold2);margin-bottom:10px">${lang==='ar'?titleAr:titleEn}</div>
-    <div style="font-size:13px;color:var(--dim2);max-width:300px;line-height:1.7">${lang==='ar'?subAr:subEn}</div>
-    <div style="margin-top:22px;display:flex;align-items:center;gap:8px;color:var(--dim);font-size:11px">
-      <div style="width:8px;height:8px;border-radius:50%;background:#777;animation:pulse 1.5s infinite"></div>
-      ${lang==='ar'?reopenAr:reopenEn}
-    </div>`;
-}
-function showClosed(){ renderClosedOverlay(); }
-function hideClosed(){ const ov=document.getElementById('closedOverlay'); if(ov) ov.remove(); }
-
-async function refreshServiceStatus(){
-  serviceOpen = await isServiceOpen();
-  if(serviceOpen) hideClosed(); else showClosed();
-}
-
 async function placeOrder(sugar){
   // Prevent duplicate orders
   if(isOrdering) return;
@@ -782,19 +734,6 @@ async function placeOrder(sugar){
     btn.style.pointerEvents='none';
     btn.style.opacity='0.5';
   });
-
-  // Guard: don't place an order if no tea boy is online
-  const open = await isServiceOpen();
-  if(!open){
-    serviceOpen=false;
-    showClosed();
-    isOrdering=false;
-    document.querySelectorAll('.sugar-item').forEach(btn=>{
-      btn.style.pointerEvents='';
-      btn.style.opacity='';
-    });
-    return;
-  }
 
   try{
     const secName = selectedSection ? selectedSection.name : '';
@@ -870,10 +809,6 @@ function initApp(){
   buildTableGrid();
   applyDir();
   applyLang();
-
-  // Check tea boy online status, then poll every 15s
-  refreshServiceStatus();
-  statusTimer=setInterval(refreshServiceStatus, 8000);
 
   // Auto-fill from QR code scan — skip straight to drink menu
   const qrParams = getParamsFromURL();
