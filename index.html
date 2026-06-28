@@ -49,6 +49,19 @@ body{
 .als-shine::before,.toy-shine::before{animation:shineIntro 1.6s ease-in-out 0.35s 1}
 .als-shine::after{animation:shineLoop 120s ease-in-out 60s infinite}
 .toy-shine::after{animation:shineLoop 120s ease-in-out 120s infinite}
+/* SECRET CREATOR SCREEN */
+#creatorScreen{display:none;position:fixed;inset:0;z-index:99999;background:radial-gradient(circle at 50% 38%,#181306 0%,#000 72%);flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:34px;animation:fadeUp .55s ease}
+#creatorScreen .cs-mark{font-size:30px;color:#c9a84c;letter-spacing:6px;margin-bottom:18px;text-shadow:0 0 22px rgba(201,168,76,.55)}
+#creatorScreen .cs-by{font-size:12px;letter-spacing:4px;color:#9a8a55;text-transform:uppercase;margin-bottom:12px}
+#creatorScreen .cs-name{font-size:30px;font-weight:900;color:#fff;margin-bottom:6px}
+#creatorScreen .cs-role{font-size:13px;letter-spacing:2px;color:#9a8a55;text-transform:uppercase;margin-bottom:4px}
+#creatorScreen .cs-person{font-size:21px;font-weight:800;color:#d4b75e;margin-bottom:24px;text-shadow:0 0 16px rgba(201,168,76,.4)}
+#creatorScreen .cs-line{width:120px;height:1px;background:linear-gradient(to right,transparent,#c9a84c,transparent);margin:0 auto 24px}
+#creatorScreen .cs-quote{font-size:14px;font-style:italic;color:#cabfa0;max-width:330px;line-height:1.7;margin-bottom:20px}
+#creatorScreen .cs-ded{font-size:14px;color:#bba968;margin-bottom:30px}
+#creatorScreen .cs-ded b{color:#fff}
+#creatorScreen .cs-foot{font-size:11px;letter-spacing:1px;color:#6a6048;line-height:1.9}
+#creatorScreen .cs-close{margin-top:30px;font-size:11px;color:#7a7050;letter-spacing:2px}
 .logo-toy{
   height:42px;width:auto;object-fit:contain;
   flex-shrink:0;
@@ -837,6 +850,51 @@ function initApp(){
 }
 
 document.addEventListener('DOMContentLoaded', initApp);
+</script>
+<div id="creatorScreen">
+  <div class="cs-mark">✦</div>
+  <div class="cs-by">Engineered By</div>
+  <div class="cs-name">FAH MEDIA</div>
+  <div class="cs-role">Founder &amp; Developer</div>
+  <div class="cs-person">Mohamed Farshad</div>
+  <div class="cs-line"></div>
+  <div class="cs-quote">"Built from zero, by belief alone."</div>
+  <div class="cs-ded">Dedicated to my friend <b>Anandu</b></div>
+  <div class="cs-foot">© Fah Media · All Rights Reserved<br>Designed &amp; Developed with AI</div>
+  <div class="cs-close">— TAP ANYWHERE TO CLOSE —</div>
+</div>
+<script>
+(function(){
+  var als,toy,armed=false,armTimer=null,dragging=false,pid=null,moved=false,sx=0,sy=0,taps=0,lastTap=0;
+  function show(){var o=document.getElementById('creatorScreen');if(o)o.style.display='flex';armed=false;taps=0;}
+  function hide(){var o=document.getElementById('creatorScreen');if(o)o.style.display='none';}
+  function overToy(x,y){if(!toy)return false;var r=toy.getBoundingClientRect(),p=26;return x>=r.left-p&&x<=r.right+p&&y>=r.top-p&&y<=r.bottom+p;}
+  function flash(){if(!als)return;als.style.transition='filter .1s';var n=0;var iv=setInterval(function(){als.style.filter=(n%2===0)?'brightness(2.6) drop-shadow(0 0 14px #ffd700)':'brightness(1)';n++;if(n>3){clearInterval(iv);als.style.filter='';}},120);}
+  function arm(){armed=true;taps=0;clearTimeout(armTimer);armTimer=setTimeout(function(){armed=false;},20000);flash();}
+  function init(){
+    als=document.querySelector('.logo-als');
+    toy=document.querySelector('.logo-toy');
+    if(!als)return;
+    als.setAttribute('draggable','false');
+    if(toy)toy.setAttribute('draggable','false');
+    als.style.touchAction='none';als.style.cursor='pointer';
+    als.addEventListener('pointerdown',function(e){dragging=true;moved=false;sx=e.clientX;sy=e.clientY;pid=e.pointerId;try{als.setPointerCapture(pid);}catch(_){}});
+    als.addEventListener('pointermove',function(e){
+      if(!dragging)return;
+      var dx=e.clientX-sx,dy=e.clientY-sy;if(Math.sqrt(dx*dx+dy*dy)>8)moved=true;
+      if(armed&&overToy(e.clientX,e.clientY)){dragging=false;try{als.releasePointerCapture(pid);}catch(_){}show();}
+    });
+    als.addEventListener('pointerup',function(e){
+      dragging=false;try{als.releasePointerCapture(pid);}catch(_){}
+      if(armed&&overToy(e.clientX,e.clientY)){show();return;}
+      if(!moved){var n=Date.now();if(n-lastTap>2500){taps=0;}lastTap=n;taps++;if(taps>=4){arm();}}
+    });
+    als.addEventListener('pointercancel',function(){dragging=false;});
+    if(toy){toy.addEventListener('pointerup',function(e){if(armed&&overToy(e.clientX,e.clientY)){show();}});}
+    var o=document.getElementById('creatorScreen');if(o)o.addEventListener('click',hide);
+  }
+  if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',init);}else{init();}
+})();
 </script>
 </body>
 </html>
