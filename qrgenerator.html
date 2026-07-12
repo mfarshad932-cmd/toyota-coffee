@@ -114,28 +114,28 @@ body { display: flex; flex-direction: column; align-items: center; padding: 32px
 
 /* ============ LUXURY COFFEE CUP + QR ============ */
 .qr-section { margin-top: 16px; display: flex; justify-content: center; }
-.cup-scene { position: relative; width: 320px; height: 366px; }
-.cup-svg { position: absolute; inset: 0; width: 320px; height: 366px; overflow: visible; }
+.cup-scene { position: relative; width: 320px; height: 380px; }
+.cup-svg { position: absolute; inset: 0; width: 320px; height: 380px; overflow: visible; }
 
-/* rising steam */
+/* rising steam — two soft realistic wisps */
 .steam path {
-  fill: none; stroke: rgba(230,201,132,0.75); stroke-width: 3.5; stroke-linecap: round;
+  fill: none; stroke: url(#steamFade); stroke-linecap: round;
   transform-box: fill-box; transform-origin: center bottom;
-  animation: steamRise 3.2s ease-in-out infinite;
+  animation: steamRise 4.6s ease-in-out infinite;
 }
-.steam path.s2 { animation-delay: 1.1s; stroke-width: 4; }
-.steam path.s3 { animation-delay: 2.2s; }
+.steam path.s1 { stroke-width: 5; }
+.steam path.s2 { stroke-width: 4; animation-delay: 2.3s; }
 @keyframes steamRise {
-  0%   { opacity: 0; transform: translateY(8px) scaleY(0.85); }
-  35%  { opacity: 0.85; }
-  100% { opacity: 0; transform: translateY(-12px) scaleY(1.08); }
+  0%   { opacity: 0.45; transform: translateY(4px) scaleY(0.96); }
+  50%  { opacity: 0.95; transform: translateY(-6px) scaleY(1.04); }
+  100% { opacity: 0.45; transform: translateY(4px) scaleY(0.96); }
 }
 
 /* white QR panel sitting inside the cup body */
 .qr-box {
-  position: absolute; left: 78px; top: 116px;
+  position: absolute; left: 78px; top: 124px;
   width: 164px; height: 164px; padding: 12px;
-  background: white; border-radius: 14px;
+  background: white; border-radius: 16px;
   box-shadow: 0 10px 34px -8px rgba(0,0,0,0.85), inset 0 0 0 1px rgba(201,164,76,0.35);
 }
 .qr-box-corner { position: absolute; width: 13px; height: 13px; }
@@ -190,7 +190,7 @@ body { display: flex; flex-direction: column; align-items: center; padding: 32px
 <!-- Control Panel -->
 <div class="panel">
   <div class="panel-inner">
-    <div class="panel-title">⚙ Configure Sticker</div>
+    <div class="panel-title">Configure Sticker</div>
 
     <div class="field">
       <label>Section</label>
@@ -220,7 +220,7 @@ body { display: flex; flex-direction: column; align-items: center; padding: 32px
       <div class="base-url-note">QR will open this URL with section/table/seat pre-filled</div>
     </div>
 
-    <button class="btn-generate" onclick="generateSticker()">⬛ Generate QR Sticker</button>
+    <button class="btn-generate" onclick="generateSticker()">Generate QR Sticker</button>
   </div>
 </div>
 
@@ -275,70 +275,86 @@ body { display: flex; flex-direction: column; align-items: center; padding: 32px
     <!-- Luxury coffee cup with the QR code inside -->
     <div class="qr-section">
       <div class="cup-scene">
-        <svg class="cup-svg" viewBox="0 0 320 366" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <svg class="cup-svg" viewBox="0 0 320 380" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
           <defs>
-            <linearGradient id="cupBody" x1="0" y1="0" x2="0.35" y2="1">
-              <stop offset="0" stop-color="#33291e"/>
-              <stop offset="0.45" stop-color="#1c140d"/>
-              <stop offset="1" stop-color="#0a0705"/>
+            <linearGradient id="cupBody" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#3a2e20"/>
+              <stop offset="0.4" stop-color="#211710"/>
+              <stop offset="1" stop-color="#0b0806"/>
             </linearGradient>
             <linearGradient id="rimGold" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0" stop-color="#8a6a25"/>
-              <stop offset="0.5" stop-color="#f4d77a"/>
-              <stop offset="1" stop-color="#8a6a25"/>
-            </linearGradient>
-            <radialGradient id="espresso" cx="0.5" cy="0.4" r="0.8">
-              <stop offset="0" stop-color="#5a3418"/>
-              <stop offset="1" stop-color="#1e0f05"/>
-            </radialGradient>
-            <linearGradient id="saucerGold" x1="0" y1="0" x2="1" y2="0">
               <stop offset="0" stop-color="#7a5a1a"/>
-              <stop offset="0.5" stop-color="#e6c984"/>
+              <stop offset="0.22" stop-color="#e8c877"/>
+              <stop offset="0.5" stop-color="#fbe9ad"/>
+              <stop offset="0.78" stop-color="#e8c877"/>
               <stop offset="1" stop-color="#7a5a1a"/>
             </linearGradient>
-            <linearGradient id="saucerTop" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0" stop-color="#c9a44c"/>
-              <stop offset="0.5" stop-color="#f4d77a"/>
-              <stop offset="1" stop-color="#c9a44c"/>
-            </linearGradient>
-            <linearGradient id="goldStroke" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0" stop-color="#f4d77a"/>
+            <radialGradient id="espresso" cx="0.5" cy="0.35" r="0.85">
+              <stop offset="0" stop-color="#6b3d1a"/>
+              <stop offset="0.55" stop-color="#3a2008"/>
+              <stop offset="1" stop-color="#170b03"/>
+            </radialGradient>
+            <linearGradient id="saucerBase" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0" stop-color="#5d451399"/>
               <stop offset="0.5" stop-color="#c9a44c"/>
-              <stop offset="1" stop-color="#8a6a25"/>
+              <stop offset="1" stop-color="#5d451399"/>
             </linearGradient>
+            <linearGradient id="saucerTop" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0" stop-color="#a5843a"/>
+              <stop offset="0.28" stop-color="#f0d78e"/>
+              <stop offset="0.5" stop-color="#fbe9ad"/>
+              <stop offset="0.72" stop-color="#f0d78e"/>
+              <stop offset="1" stop-color="#a5843a"/>
+            </linearGradient>
+            <linearGradient id="handleGold" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#fbe9ad"/>
+              <stop offset="0.45" stop-color="#c9a44c"/>
+              <stop offset="1" stop-color="#6d5118"/>
+            </linearGradient>
+            <linearGradient id="steamFade" gradientUnits="userSpaceOnUse" x1="0" y1="96" x2="0" y2="0">
+              <stop offset="0" stop-color="#fff4d6" stop-opacity="0"/>
+              <stop offset="0.28" stop-color="#f4d77a" stop-opacity="0.55"/>
+              <stop offset="0.7" stop-color="#fff4d6" stop-opacity="0.4"/>
+              <stop offset="1" stop-color="#fff4d6" stop-opacity="0"/>
+            </linearGradient>
+            <filter id="soft1" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="1.4"/></filter>
+            <filter id="soft3" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="3"/></filter>
           </defs>
 
-          <!-- steam -->
-          <g class="steam">
-            <path class="s1" d="M126 68 C118 56 134 48 126 36 C120 27 130 18 126 10"/>
-            <path class="s2" d="M160 64 C150 50 170 42 160 28 C153 19 164 12 160 4"/>
-            <path class="s3" d="M194 68 C186 56 202 48 194 36 C188 27 198 18 194 10"/>
+          <!-- steam: two soft wisps -->
+          <g class="steam" filter="url(#soft1)">
+            <path class="s1" d="M144 94 C130 76 154 62 142 42 C134 28 150 16 144 2"/>
+            <path class="s2" d="M180 92 C192 76 168 60 180 40 C188 26 172 16 178 4"/>
           </g>
 
           <!-- floor shadow -->
-          <ellipse cx="160" cy="348" rx="138" ry="10" fill="rgba(0,0,0,0.5)"/>
+          <ellipse cx="160" cy="356" rx="136" ry="10" fill="rgba(0,0,0,0.55)" filter="url(#soft3)"/>
 
           <!-- saucer -->
-          <ellipse cx="160" cy="334" rx="126" ry="15" fill="url(#saucerGold)"/>
-          <ellipse cx="160" cy="331" rx="126" ry="13" fill="url(#saucerTop)"/>
-          <ellipse cx="160" cy="330" rx="84" ry="8" fill="rgba(30,15,3,0.35)"/>
+          <ellipse cx="160" cy="342" rx="130" ry="16" fill="url(#saucerBase)"/>
+          <ellipse cx="160" cy="338" rx="130" ry="14" fill="url(#saucerTop)"/>
+          <ellipse cx="160" cy="336" rx="86" ry="8" fill="rgba(35,20,5,0.22)"/>
 
-          <!-- handle -->
-          <path d="M264 138 C306 144 312 208 262 222" fill="none" stroke="url(#goldStroke)" stroke-width="11" stroke-linecap="round"/>
-          <path d="M264 140 C300 146 305 204 262 218" fill="none" stroke="rgba(0,0,0,0.35)" stroke-width="3.5" stroke-linecap="round"/>
+          <!-- handle: solid gold ear with hole -->
+          <path fill-rule="evenodd" fill="url(#handleGold)" stroke="rgba(60,40,8,0.5)" stroke-width="1"
+                d="M258 138 C316 132 330 226 256 234 C250 234.5 249 220 255 219 C310 212 300 150 257 153 C251 153.5 252 138.5 258 138 Z"/>
 
-          <!-- cup body -->
-          <path d="M52 92 L72 300 Q75 318 98 318 L222 318 Q245 318 248 300 L268 92 Z"
-                fill="url(#cupBody)" stroke="rgba(201,164,76,0.55)" stroke-width="1.5"/>
-          <!-- porcelain sheen -->
-          <path d="M62 102 L78 290 Q80 304 94 307 L102 308 C88 242 82 162 84 102 Z" fill="rgba(255,255,255,0.07)"/>
+          <!-- cup body: curved porcelain silhouette -->
+          <path d="M48 100 C52 170 58 240 74 300 Q78 322 102 322 L218 322 Q242 322 246 300 C262 240 268 170 272 100 Z"
+                fill="url(#cupBody)" stroke="rgba(201,164,76,0.5)" stroke-width="1.4"/>
+          <!-- shadow under the lip -->
+          <ellipse cx="160" cy="106" rx="106" ry="9" fill="rgba(0,0,0,0.28)" filter="url(#soft1)"/>
+          <!-- porcelain light: left sheen, right shade -->
+          <path d="M62 115 C66 190 74 258 88 302 L96 305 C80 255 72 185 70 115 Z" fill="rgba(255,255,255,0.09)" filter="url(#soft1)"/>
+          <path d="M258 115 C254 190 246 258 232 302 L224 305 C240 255 248 185 250 115 Z" fill="rgba(0,0,0,0.30)" filter="url(#soft1)"/>
           <!-- gold bands near base -->
-          <path d="M77 290 Q160 301 243 290" fill="none" stroke="rgba(230,201,132,0.75)" stroke-width="2.5"/>
-          <path d="M79 298 Q160 308 241 298" fill="none" stroke="rgba(201,164,76,0.35)" stroke-width="1.2"/>
+          <path d="M80 294 Q160 307 240 294" stroke="url(#rimGold)" stroke-width="2.6" fill="none"/>
+          <path d="M84 303 Q160 314 236 303" stroke="rgba(201,164,76,0.35)" stroke-width="1.2" fill="none"/>
 
-          <!-- rim -->
-          <ellipse cx="160" cy="92" rx="108" ry="13" fill="url(#rimGold)"/>
-          <ellipse cx="160" cy="92" rx="99" ry="9.5" fill="url(#espresso)"/>
+          <!-- rim + espresso surface -->
+          <ellipse cx="160" cy="100" rx="112" ry="14" fill="url(#rimGold)"/>
+          <ellipse cx="160" cy="101" rx="103" ry="10.5" fill="url(#espresso)"/>
+          <path d="M72 97 Q160 87 248 97" stroke="rgba(255,240,200,0.5)" stroke-width="1.5" fill="none"/>
         </svg>
 
         <!-- QR panel inside the cup -->
@@ -438,10 +454,12 @@ function generateSticker() {
   if (isGarage) {
     tiles[0].querySelector('.tile-label').textContent = 'Seat';
     tiles[0].querySelector('.tile-value').textContent = seat;
+    tiles[0].style.gridColumn = '1 / -1';
     tiles[1].style.display = 'none';
   } else {
     tiles[0].querySelector('.tile-label').textContent = 'Table';
     tiles[0].querySelector('.tile-value').textContent = table;
+    tiles[0].style.gridColumn = '';
     tiles[1].style.display = '';
     tiles[1].querySelector('.tile-label').textContent = 'Seat';
     tiles[1].querySelector('.tile-value').textContent = seat;
