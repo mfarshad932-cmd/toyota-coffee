@@ -26,7 +26,7 @@ body{
 @keyframes scanline{0%{transform:translateY(-100%)}100%{transform:translateY(100vh)}}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
 @keyframes shineIntro{0%{left:-120%}100%{left:120%}}
-@keyframes shineLoop{0%{left:-120%}1.33%,100%{left:120%}}
+@keyframes shineLoop{0%{left:-120%}1.78%,100%{left:120%}}
 .fade{animation:fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) forwards}
 
 /* TOP BAR */
@@ -46,9 +46,7 @@ body{
 .als-shine{border-radius:50%}
 .toy-shine{border-radius:4px}
 .als-shine::before,.als-shine::after,.toy-shine::before,.toy-shine::after{content:'';position:absolute;top:0;left:-120%;width:60%;height:100%;background:linear-gradient(115deg,transparent 0%,rgba(255,215,0,0.12) 30%,rgba(255,248,210,0.95) 50%,rgba(255,215,0,0.12) 70%,transparent 100%);transform:skewX(-18deg);pointer-events:none}
-.als-shine::before,.toy-shine::before{animation:shineIntro 1.6s ease-in-out 0.35s 1}
-.als-shine::after{animation:shineLoop 120s ease-in-out 60s infinite}
-.toy-shine::after{animation:shineLoop 120s ease-in-out 120s infinite}
+.als-shine.shine-play::after,.toy-shine.shine-play::after{animation:shineIntro 1.6s ease-in-out 1}
 /* SECRET CREATOR SCREEN */
 #creatorScreen{display:none;position:fixed;inset:0;z-index:99999;background:radial-gradient(circle at 50% 38%,#181306 0%,#000 72%);flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:34px;animation:fadeUp .55s ease}
 #creatorScreen .cs-mark{font-size:30px;color:#c9a84c;letter-spacing:6px;margin-bottom:18px;text-shadow:0 0 22px rgba(201,168,76,.55)}
@@ -316,6 +314,59 @@ body{
 </style>
 </head>
 <body>
+
+<!-- ===== AL-SAYER WELCOME SPLASH ===== -->
+<style>
+.alsx-splash{position:fixed;inset:0;z-index:9999;direction:ltr;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse 80% 70% at 50% 40%,#0e0e0e 0%,#070707 60%,#040404 100%);opacity:1;transition:opacity .55s ease}
+.alsx-inner{display:flex;flex-direction:column;align-items:center;gap:26px;transform:scale(min(1,calc((100vw - 28px)/470),calc((100vh - 28px)/620)));transform-origin:center}
+.alsx-splash.alsx-hide{opacity:0;pointer-events:none}
+.alsx-stage{position:relative;width:390px;height:390px;display:flex;align-items:center;justify-content:center}
+.alsx-rings{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;transition:opacity .35s ease}
+.alsx-ring{position:absolute;border-radius:50%;border:1px solid rgba(255,255,255,.05)}
+.alsx-ringA{width:372px;height:372px;border-top-color:rgba(226,178,84,.75);animation:alsxSpin 9s linear infinite}
+.alsx-ringB{width:298px;height:298px;border-bottom-color:rgba(226,178,84,.75);animation:alsxSpin 13s linear infinite reverse}
+.alsx-halo{position:absolute;width:372px;height:372px;border-radius:50%;box-shadow:0 0 26px rgba(226,178,84,.45),inset 0 0 26px rgba(226,178,84,.32),0 0 90px rgba(226,178,84,.22);animation:alsxHalo 3.4s ease-in-out infinite}
+.alsx-halo2{width:298px;height:298px;box-shadow:0 0 20px rgba(226,178,84,.4),inset 0 0 20px rgba(226,178,84,.3);animation:alsxHalo 3.4s 1.7s ease-in-out infinite}
+.alsx-trace{position:absolute;border-radius:50%;pointer-events:none;filter:drop-shadow(0 0 7px rgba(255,206,110,.9))}
+.alsx-flash{position:absolute;width:313px;height:313px;border-radius:50%;border:2px solid rgba(255,214,120,.9);box-shadow:0 0 40px rgba(226,178,84,.75),inset 0 0 40px rgba(226,178,84,.4);opacity:0;pointer-events:none}
+.alsx-canvas{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:560px;height:560px}
+.alsx-logo{position:absolute;width:236px;height:236px;border-radius:50%;background-size:cover;background-position:center;opacity:0;box-shadow:0 10px 40px rgba(226,178,84,.35);will-change:transform,opacity}
+.alsx-cap{display:flex;flex-direction:column;align-items:center;gap:12px;opacity:0;transform:translateY(10px);transition:opacity .7s ease,transform .7s ease;padding:0 16px}
+.alsx-cap.alsx-in{opacity:1;transform:none}
+.alsx-welcome{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:26px;color:#f0e3c0;text-shadow:0 0 24px rgba(226,178,84,.35);line-height:1.1;white-space:nowrap}
+.alsx-title{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:27px;letter-spacing:.12em;padding-left:.12em;line-height:1.1;white-space:nowrap;background:linear-gradient(180deg,#fff7e2,#f3d78f 42%,#c9962f 74%,#f3d78f);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:#e6c977}
+.alsx-guest{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:20px;font-weight:600;color:#cfa14a;line-height:1.1;white-space:nowrap}
+.alsx-branch{display:flex;align-items:center;gap:11px;font-family:'Cormorant Garamond',serif;font-weight:700;font-size:12px;letter-spacing:.34em;padding-left:.34em;line-height:1.1;white-space:nowrap;color:#d7dde6}
+.alsx-branch .l{width:34px;height:1px;background:linear-gradient(90deg,transparent,rgba(226,178,84,.8))}
+.alsx-branch .l.r{background:linear-gradient(90deg,rgba(226,178,84,.8),transparent)}
+@keyframes alsxSpin{to{transform:rotate(360deg)}}
+@keyframes alsxHalo{0%,100%{opacity:.45;transform:scale(.985)}50%{opacity:.9;transform:scale(1.015)}}
+</style>
+<div id="alsxSplash" class="alsx-splash">
+  <div class="alsx-inner">
+  <div class="alsx-stage">
+    <div class="alsx-rings">
+      <div class="alsx-ring alsx-ringA"></div>
+      <div class="alsx-ring alsx-ringB"></div>
+      <div class="alsx-halo"></div>
+      <div class="alsx-halo alsx-halo2"></div>
+      <div class="alsx-trace" style="width:430px;height:430px;background:conic-gradient(from 0deg,rgba(255,236,170,0) 0deg,rgba(255,236,170,0) 200deg,rgba(255,214,120,.22) 300deg,rgba(255,236,170,.92) 350deg,#fff6dc 360deg);-webkit-mask:radial-gradient(circle,transparent 0 204px,#000 206px,#000 217px,transparent 219px);mask:radial-gradient(circle,transparent 0 204px,#000 206px,#000 217px,transparent 219px);animation:alsxSpin 5.2s 0s linear infinite"></div>
+      <div class="alsx-trace" style="width:430px;height:430px;background:conic-gradient(from 0deg,rgba(255,236,170,0) 0deg,rgba(255,236,170,0) 200deg,rgba(255,214,120,.22) 300deg,rgba(255,236,170,.92) 350deg,rgba(255,230,150,.9) 360deg);-webkit-mask:radial-gradient(circle,transparent 0 207px,#000 209px,#000 214px,transparent 216px);mask:radial-gradient(circle,transparent 0 207px,#000 209px,#000 214px,transparent 216px);animation:alsxSpin 5.2s -2.6s linear infinite"></div>
+      <div class="alsx-trace" style="width:345px;height:345px;background:conic-gradient(from 0deg,rgba(255,236,170,0) 0deg,rgba(255,236,170,0) 200deg,rgba(255,214,120,.22) 300deg,rgba(255,236,170,.92) 350deg,#fff6dc 360deg);-webkit-mask:radial-gradient(circle,transparent 0 165px,#000 167px,#000 172px,transparent 174px);mask:radial-gradient(circle,transparent 0 165px,#000 167px,#000 172px,transparent 174px);animation:alsxSpin 4.2s -1.5s linear infinite reverse"></div>
+      <div class="alsx-trace" style="width:345px;height:345px;background:conic-gradient(from 0deg,rgba(255,236,170,0) 0deg,rgba(255,236,170,0) 200deg,rgba(255,214,120,.22) 300deg,rgba(255,236,170,.92) 350deg,rgba(255,230,150,.85) 360deg);-webkit-mask:radial-gradient(circle,transparent 0 168px,#000 170px,#000 172px,transparent 174px);mask:radial-gradient(circle,transparent 0 168px,#000 170px,#000 172px,transparent 174px);animation:alsxSpin 4.2s -3.2s linear infinite reverse"></div>
+      <div class="alsx-flash" id="alsxFlash"></div>
+    </div>
+    <canvas id="alsxCanvas" class="alsx-canvas"></canvas>
+    <div class="alsx-logo" id="alsxLogo"></div>
+  </div>
+  <div class="alsx-cap" id="alsxCap">
+    <div class="alsx-welcome">Welcome to</div>
+    <div class="alsx-title">TOYOTA AL&#8209;SAYER</div>
+    <div class="alsx-guest">Guest Hospitality Service</div>
+    <div class="alsx-branch"><span class="l"></span><span>AHMADI BRANCH</span><span class="l r"></span></div>
+  </div>
+  </div>
+</div>
 
 <!-- TOP BAR -->
 <div class="top-bar">
@@ -894,6 +945,109 @@ document.addEventListener('DOMContentLoaded', initApp);
     var o=document.getElementById('creatorScreen');if(o)o.addEventListener('click',hide);
   }
   if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',init);}else{init();}
+})();
+</script>
+<!-- ===== AL-SAYER WELCOME SPLASH ENGINE ===== -->
+<script>
+(function(){
+  function run(){
+    var splash=document.getElementById('alsxSplash');
+    var srcImg=document.querySelector('.logo-als');
+    if(!splash||!srcImg){ if(splash){splash.parentNode.removeChild(splash);} return; }
+    var src=srcImg.getAttribute('src');
+    var canvas=document.getElementById('alsxCanvas');
+    var logoEl=document.getElementById('alsxLogo');
+    var cap=document.getElementById('alsxCap');
+    var flash=document.getElementById('alsxFlash');
+    var rings=splash.querySelector('.alsx-rings');
+    logoEl.style.backgroundImage='url("'+src+'")';
+    var DPR=Math.min(window.devicePixelRatio||1,2), CSS=560, TARGET=236;
+    canvas.width=CSS*DPR; canvas.height=CSS*DPR;
+    var ctx=canvas.getContext('2d'); ctx.scale(DPR,DPR);
+    setTimeout(function(){cap.classList.add('alsx-in');},650);
+
+    var img=new Image();
+    img.onload=function(){
+      var S=150, off=document.createElement('canvas'); off.width=S; off.height=S;
+      var octx=off.getContext('2d');
+      var r=Math.max(S/img.width,S/img.height), w=img.width*r, h=img.height*r;
+      octx.drawImage(img,(S-w)/2,(S-h)/2,w,h);
+      var data;
+      try{ data=octx.getImageData(0,0,S,S).data; }catch(e){ data=null; }
+      var cx=S/2, cy=S/2, rad=S/2-2, pts=[], step=2;
+      for(var y=0;y<S;y+=step){ for(var x=0;x<S;x+=step){
+        var dx=x-cx, dy=y-cy; if(dx*dx+dy*dy>rad*rad) continue;
+        var col='#e8c97a';
+        if(data){
+          var idx=(y*S+x)*4, rr=data[idx], gg=data[idx+1], bb=data[idx+2], aa=data[idx+3];
+          if(aa<30) continue;
+          var lum=(0.3*rr+0.59*gg+0.11*bb)/255; if(lum<0.16) continue;
+          col='rgb('+Math.min(255,(rr*1.18)|0)+','+Math.min(255,(gg*1.12)|0)+','+Math.min(255,(bb*1.12)|0)+')';
+        }
+        pts.push({tx:(x-cx)/S*TARGET+CSS/2, ty:(y-cy)/S*TARGET+CSS/2, c:col});
+      }}
+      var gold=['#e8c97a','#f3d78f','#c9a84c','#fff2cf'];
+      var P=pts.map(function(p){
+        var ang=Math.random()*Math.PI*2, dist=110+Math.random()*100;
+        return {x:CSS/2+Math.cos(ang)*dist, y:CSS/2+Math.sin(ang)*dist, tx:p.tx, ty:p.ty, d:Math.random()*.4, sz:0.9+Math.random()*1.1, c:p.c};
+      });
+      var DUR=2100, t0=performance.now(), ease=function(t){return 1-Math.pow(1-t,3);}, SW=1.7;
+      function frame(now){
+        var g=Math.min(1,(now-t0)/DUR);
+        ctx.clearRect(0,0,CSS,CSS);
+        for(var k=0;k<P.length;k++){ var p=P[k];
+          var lp=Math.max(0,Math.min(1,(g-p.d)/0.6)), e=ease(lp);
+          var bx=p.x+(p.tx-p.x)*e, by=p.y+(p.ty-p.y)*e;
+          var sw=(1-e)*SW, ca=Math.cos(sw), sa=Math.sin(sw);
+          var rx=bx-CSS/2, ry=by-CSS/2;
+          var x=CSS/2+rx*ca-ry*sa, y=CSS/2+rx*sa+ry*ca;
+          var sz=p.sz*(0.55+e*0.45);
+          ctx.fillStyle=p.c; ctx.globalAlpha=Math.min(1,.2+e*.8);
+          ctx.beginPath(); ctx.arc(x,y,sz,0,6.283); ctx.fill();
+        }
+        ctx.globalAlpha=1;
+        if(g<1){ requestAnimationFrame(frame); } else { finish(); }
+      }
+      requestAnimationFrame(frame);
+    };
+    img.onerror=function(){ finish(); };
+    img.src=src;
+
+    function finish(){
+      logoEl.style.transition='opacity .6s ease'; logoEl.style.opacity='1';
+      canvas.style.transition='opacity .6s ease'; canvas.style.opacity='0';
+      try{ flash.animate([{opacity:0,transform:'scale(.5)'},{opacity:.95,transform:'scale(.92)',offset:.12},{opacity:0,transform:'scale(1.5)'}],{duration:900,easing:'cubic-bezier(.2,.7,.3,1)'}); }catch(e){}
+      setTimeout(dock,950);
+    }
+    function dock(){
+      rings.style.opacity='0'; cap.style.opacity='0';
+      var from=logoEl.getBoundingClientRect(), to=srcImg.getBoundingClientRect();
+      if(to.width){
+        var s=to.width/from.width;
+        var dx=(to.left+to.width/2)-(from.left+from.width/2);
+        var dy=(to.top+to.height/2)-(from.top+from.height/2);
+        logoEl.style.transition='transform 1s cubic-bezier(.3,.7,.25,1)';
+        logoEl.style.transform='translate('+dx+'px,'+dy+'px) scale('+s+')';
+      }
+      setTimeout(function(){
+        splash.classList.add('alsx-hide');
+        setTimeout(function(){ splash.parentNode&&splash.parentNode.removeChild(splash); },600);
+      },800);
+      startHeaderShine();
+    }
+    function startHeaderShine(){
+      var alsW=document.querySelector('.als-shine'), toyW=document.querySelector('.toy-shine');
+      if(!alsW&&!toyW)return;
+      function sweep(el){ if(!el)return; el.classList.remove('shine-play'); void el.offsetWidth; el.classList.add('shine-play'); }
+      function both(){ sweep(alsW); sweep(toyW); }
+      setTimeout(function(){
+        both();
+        var which=0;
+        setInterval(function(){ if(which%2===0){ sweep(alsW); } else { sweep(toyW); } which++; },45000);
+      },2000);
+    }
+  }
+  if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded',run); } else { run(); }
 })();
 </script>
 </body>
