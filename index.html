@@ -318,7 +318,7 @@ body{
 <!-- ===== AL-SAYER WELCOME SPLASH ===== -->
 <style>
 .alsx-splash{position:fixed;inset:0;z-index:9999;direction:ltr;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse 80% 70% at 50% 40%,#0e0e0e 0%,#070707 60%,#040404 100%);opacity:1;transition:opacity .55s ease}
-.alsx-inner{display:flex;flex-direction:column;align-items:center;gap:26px;transform:scale(min(1,calc((100vw - 28px)/470),calc((100vh - 28px)/620)));transform-origin:center}
+.alsx-inner{display:flex;flex-direction:column;align-items:center;gap:26px;transform-origin:center;will-change:transform}
 .alsx-splash.alsx-hide{opacity:0;pointer-events:none}
 .alsx-stage{position:relative;width:390px;height:390px;display:flex;align-items:center;justify-content:center}
 .alsx-rings{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;transition:opacity .35s ease}
@@ -960,6 +960,15 @@ document.addEventListener('DOMContentLoaded', initApp);
     var cap=document.getElementById('alsxCap');
     var flash=document.getElementById('alsxFlash');
     var rings=splash.querySelector('.alsx-rings');
+    var inner=splash.querySelector('.alsx-inner');
+    var splashScale=1;
+    function fitSplash(){
+      if(!inner)return;
+      splashScale=Math.min(1,(window.innerWidth-24)/580,(window.innerHeight-24)/640);
+      inner.style.transform='scale('+splashScale+')';
+    }
+    fitSplash();
+    window.addEventListener('resize',fitSplash);
     logoEl.style.backgroundImage='url("'+src+'")';
     var DPR=Math.min(window.devicePixelRatio||1,2), CSS=560, TARGET=236;
     canvas.width=CSS*DPR; canvas.height=CSS*DPR;
@@ -1026,8 +1035,9 @@ document.addEventListener('DOMContentLoaded', initApp);
         var s=to.width/from.width;
         var dx=(to.left+to.width/2)-(from.left+from.width/2);
         var dy=(to.top+to.height/2)-(from.top+from.height/2);
+        var S=splashScale||1;
         logoEl.style.transition='transform 1s cubic-bezier(.3,.7,.25,1)';
-        logoEl.style.transform='translate('+dx+'px,'+dy+'px) scale('+s+')';
+        logoEl.style.transform='translate('+(dx/S)+'px,'+(dy/S)+'px) scale('+s+')';
       }
       setTimeout(function(){
         splash.classList.add('alsx-hide');
